@@ -80,7 +80,8 @@
         const data = JSON.parse(msg.data);
         let cell = document.getElementById(data['_id']).children[1];
         cell.innerHTML = data['insultos'];
-        if (data['insultos'] === 1) {
+        disableZero();
+        if (data['insultos'] > 0) {
             cell.nextElementSibling.children[1].removeAttribute('disabled');
         }
     }
@@ -108,6 +109,9 @@
 
     function sub(id) {
         const btn = document.getElementById('btn-sub-' + id);
+        if (document.getElementById(id).children[1].innerHTML < 1) {
+            return false;
+        }
         btn.setAttribute('disabled', 'disabled');
         putData('/count/' + id + '?t=s')
             .then(data => {
