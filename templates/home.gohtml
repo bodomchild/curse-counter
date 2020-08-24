@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contador de insultos">
+    <meta name="author" content="Fernando Cocco">
+    <title>Contador de insultos</title>
+    <style>
+        .center {
+            text-align: center !important;
+        }
+
+        .fr {
+            width: 200px;
+        }
+
+        .header {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            height: 50px;
+            margin-bottom: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <header>
+        <h1>CONTADOR DE INSULTOS</h1>
+    </header>
+</div>
+<div style="display: flex; justify-content: flex-start; padding-left: 15px;">
+    <table style="width: 50%">
+        <thead>
+        <tr>
+            <th class="fr">Nombre</th>
+            <th>Insultos</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .Personas}}
+            <tr id="{{.ID.Hex}}">
+                <td>{{.Nombre}}</td>
+                <td class="center">{{.Insultos}}</td>
+                <td>
+                    <button type="button" name="add" id="btn-add-{{.ID.Hex}}" onclick="add({{.ID}});" disabled>+
+                    </button>
+                    <button type="button" name="subtract" id="btn-sub-{{.ID.Hex}}" onclick="sub({{.ID}});" disabled>-
+                    </button>
+                </td>
+            </tr>
+        {{end}}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let ws = new WebSocket({{.URLWebSocket}});
+    ws.onopen = () => {
+        let btns = document.getElementsByTagName('button');
+        for (let btn of btns) {
+            btn.removeAttribute('disabled');
+            btn.removeAttribute('title');
+            btn.setAttribute('style', 'cursor:default;');
+        }
+        disableZero();
+    }
+    ws.onclose = () => {
+        disableButtons();
+        location.reload();
+    }
+    ws.onerror = () => {
+        disableButtons();
+        location.reload();
+    }
+    ws.onmessage = (msg) => {
+        const data = JSON.parse(msg.data);
+        let cell = document.getElementById(data['_id']).children[1];
+        cell.innerHTML = data['insultos'];
+        if (data['insultos'] === 1) {
+            cell.nextElementSibling.children[1].removeAttribute('disabled');
+        }
+    }
+
+    async function putData(url = '', data = {}, opts = {method: 'PUT', body: JSON.stringify(data)}) {
+        const response = await fetch(url, opts);
+        return response.json();
+    }
+
+    function add(id) {
+        const btn = document.getElementById('btn-add-' + id);
+        btn.setAttribute('disabled', 'disabled');
+        putData('/count/' + id + '?t=a')
+            .then(data => {
+                ws.send(JSON.stringify(data));
+                if (data['insultos'] > 0) {
+                    btn.removeAttribute('disabled');
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                btn.removeAttribute('disabled');
+            });
+    }
+
+    function sub(id) {
+        const btn = document.getElementById('btn-sub-' + id);
+        btn.setAttribute('disabled', 'disabled');
+        putData('/count/' + id + '?t=s')
+            .then(data => {
+                ws.send(JSON.stringify(data));
+                if (data['insultos'] > 0) {
+                    btn.removeAttribute('disabled');
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                btn.removeAttribute('disabled');
+            });
+    }
+
+    function disableButtons() {
+        let btns = document.getElementsByTagName('button');
+        for (let btn of btns) {
+            btn.setAttribute('disabled', 'disabled');
+            btn.setAttribute('title', 'Recarga la página');
+            btn.setAttribute('style', 'cursor:not-allowed');
+        }
+    }
+
+    function disableZero() {
+        let insultos = document.getElementsByClassName('center');
+        for (let i of insultos) {
+            if (i.innerHTML === '0') {
+                i.nextElementSibling.children[1].setAttribute('disabled', 'disabled');
+            }
+        }
+    }
+
+    document.onload = () => {
+        disableZero();
+    }
+</script>
+</body>
+</html>
