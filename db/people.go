@@ -73,8 +73,17 @@ func Count(id string, qt int) (*models.Person, bool) {
 		return p, false
 	}
 
+	gteValue := 1
+	if qt == 1 {
+		gteValue = 0
+	}
+
 	col := MongoCN.Database("curse-count").Collection("person")
-	filter := bson.D{{"_id", _id}}
+	filter := bson.D{
+		{"_id", _id},
+		{"curses", bson.D{{"$gte", gteValue}},
+		},
+	}
 	update := bson.D{{"$inc", bson.D{{"curses", qt}}}}
 	after := options.After
 	opts := options.FindOneAndUpdateOptions{ReturnDocument: &after}

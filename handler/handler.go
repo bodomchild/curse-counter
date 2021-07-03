@@ -37,7 +37,7 @@ func Handler(ctx context.Context) (err error) {
 
 	router.HandleFunc("/", routers.Home).Methods("GET")
 	router.HandleFunc("/new", routers.Person).Methods("POST")
-	router.HandleFunc("/count/{id}", routers.Count).Methods("PUT")
+	router.HandleFunc("/count/{id}", routers.Count).Methods("PATCH")
 	router.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		serverWs(pool, w, r)
 	})

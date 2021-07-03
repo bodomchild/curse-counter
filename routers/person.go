@@ -44,10 +44,12 @@ func Count(w http.ResponseWriter, r *http.Request) {
 	person, ok := db.Count(id, qt)
 
 	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
+		response := models.ErrorResponse{Message: "La cantidad de insultos no puede bajar de 0"}
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(person)
 }

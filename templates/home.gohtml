@@ -59,6 +59,7 @@
 
 <script>
     let ws = new WebSocket({{.URLWebSocket}});
+
     ws.onopen = () => {
         let btns = document.getElementsByTagName('button');
         for (let btn of btns) {
@@ -68,25 +69,29 @@
         }
         disableZero();
     }
+
     ws.onclose = () => {
         disableButtons();
         location.reload();
     }
+
     ws.onerror = () => {
         disableButtons();
         location.reload();
     }
+
     ws.onmessage = (msg) => {
         const data = JSON.parse(msg.data);
         let cell = document.getElementById(data['_id']).children[1];
         cell.innerHTML = data['insultos'];
         disableZero();
+
         if (data['insultos'] > 0) {
             cell.nextElementSibling.children[1].removeAttribute('disabled');
         }
     }
 
-    async function putData(url = '', data = {}, opts = {method: 'PUT', body: JSON.stringify(data)}) {
+    async function patchData(url = '', data = {}, opts = {method: 'PATCH', body: JSON.stringify(data)}) {
         const response = await fetch(url, opts);
         return response.json();
     }
@@ -94,13 +99,8 @@
     function add(id) {
         const btn = document.getElementById('btn-add-' + id);
         btn.setAttribute('disabled', 'disabled');
-        putData('/count/' + id + '?t=a')
-            .then(data => {
-                ws.send(JSON.stringify(data));
-                if (data['insultos'] > 0) {
-                    btn.removeAttribute('disabled');
-                }
-            })
+        patchData('/count/' + id + '?t=a')
+            .then(data => handleResponse(data, btn))
             .catch((err) => {
                 console.log(err);
                 btn.removeAttribute('disabled');
@@ -113,13 +113,8 @@
             return false;
         }
         btn.setAttribute('disabled', 'disabled');
-        putData('/count/' + id + '?t=s')
-            .then(data => {
-                ws.send(JSON.stringify(data));
-                if (data['insultos'] > 0) {
-                    btn.removeAttribute('disabled');
-                }
-            })
+        patchData('/count/' + id + '?t=s')
+            .then(data => handleResponse(data, btn))
             .catch((err) => {
                 console.log(err);
                 btn.removeAttribute('disabled');
@@ -141,6 +136,17 @@
             if (i.innerHTML === '0') {
                 i.nextElementSibling.children[1].setAttribute('disabled', 'disabled');
             }
+        }
+    }
+
+    function handleResponse(data, btn) {
+        if (data['message']) {
+            console.log(data['message']);
+            return;
+        }
+        ws.send(JSON.stringify(data));
+        if (data['insultos'] > 0) {
+            btn.removeAttribute('disabled');
         }
     }
 
