@@ -67,7 +67,7 @@
             btn.removeAttribute('title');
             btn.setAttribute('style', 'cursor:default;');
         }
-        disableZero();
+        disableIfZero();
     }
 
     ws.onclose = () => {
@@ -84,7 +84,7 @@
         const data = JSON.parse(msg.data);
         let cell = document.getElementById(data['_id']).children[1];
         cell.innerHTML = data['insultos'];
-        disableZero();
+        disableIfZero();
 
         if (data['insultos'] > 0) {
             cell.nextElementSibling.children[1].removeAttribute('disabled');
@@ -130,7 +130,7 @@
         }
     }
 
-    function disableZero() {
+    function disableIfZero() {
         let insultos = document.getElementsByClassName('center');
         for (let i of insultos) {
             if (i.innerHTML === '0') {
@@ -151,7 +151,7 @@
     }
 
     document.onload = () => {
-        disableZero();
+        disableIfZero();
     }
 </script>
 </body>
