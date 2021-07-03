@@ -237,5 +237,6 @@ modules.xml
 
 ### Properties ###
 props.txt
+props-heroku.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/go
